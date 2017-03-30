@@ -12,8 +12,8 @@ struct stack {
   array<T, Size> data{};
   std::size_t index = 0;
 
-  constexpr T& top() { return data[index]; }
-  constexpr T const& top() const { return data[index]; }
+  constexpr T& top() { return data[index - 1]; }
+  constexpr T const& top() const { return data[index - 1]; }
 
   constexpr bool empty() const { return index == 0; }
   constexpr std::size_t size() const { return index; }

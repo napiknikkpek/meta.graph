@@ -44,6 +44,20 @@ constexpr bool equal(Input1 b1, Input1 e1, Input2 b2, Input2 e2) {
   }
   return b1 == e1 && b2 == e2;
 }
+
+template <typename T>
+constexpr void swap(T& a, T& b) {
+  T t = a;
+  a = b;
+  b = t;
+}
+
+template <typename Input>
+constexpr void reverse(Input first, Input last) {
+  while (first != last && first != --last) {
+    swap(*first++, *last);
+  }
+}
 }
 }
 }

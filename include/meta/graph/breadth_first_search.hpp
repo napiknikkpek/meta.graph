@@ -17,27 +17,27 @@ constexpr auto breadth_first_search(G&& g, std::size_t s) {
 
   using graph_t = std::decay_t<G>;
 
-  queue<std::size_t, graph_t::vertices_size> queue;
+  queue<std::size_t, graph_t::vertices_size> q;
   array<color, graph_t::vertices_size> colors{};
 
-  queue.push(s);
+  colors[s] = color::Gray;
+  q.push(s);
 
-  while (!queue.empty()) {
-    auto x = queue.front();
-    queue.pop();
+  while (!q.empty()) {
+    auto x = q.front();
+    q.pop();
 
     for (auto child : g.get(x)) {
       auto& clr = colors[child];
       if (clr == color::White) {
-        queue.push(child);
+        q.push(child);
         clr = color::Gray;
       }
     }
-
     colors[x] = color::Black;
   }
 
-  return queue.data;
+  return q.data;
 }
 }
 }
