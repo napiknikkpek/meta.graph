@@ -8,15 +8,6 @@ namespace meta {
 namespace graph {
 namespace detail {
 
-template <typename T>
-struct view {
-  T b;
-  T e;
-
-  constexpr T begin() { return b; }
-  constexpr T end() { return e; }
-};
-
 template <typename T, std::size_t Size>
 struct array {
   T elems[Size];

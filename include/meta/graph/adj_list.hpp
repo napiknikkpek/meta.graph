@@ -7,6 +7,7 @@
 
 #include "detail/algorithm.hpp"
 #include "detail/array.hpp"
+#include "detail/iterator_range.hpp"
 
 namespace meta {
 namespace graph {
@@ -19,10 +20,10 @@ struct adj_list {
   detail::array<std::size_t, V> const vertices;
   detail::array<std::size_t, E> const edges;
 
-  constexpr auto get(size_t n) const {
+  constexpr auto get(std::size_t n) const {
     auto b = edges.begin() + vertices[n];
     auto e = edges.begin() + (n + 1 < V ? vertices[n + 1] : E);
-    return detail::view<std::size_t const*>{b, e};
+    return detail::make_iterator_range(b, e);
   }
 };
 
@@ -38,6 +39,7 @@ constexpr auto make_adj_list(detail::array<T, Is>... xs) {
   partial_sum(sizes.begin(), prev(sizes.end()), next(vertices.begin()));
 
   array<std::size_t, E> edges{};
+
   auto i = edges.begin();
   (..., (i = copy(xs.begin(), xs.end(), i)));
 
