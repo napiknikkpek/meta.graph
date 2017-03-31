@@ -3,6 +3,12 @@
 
 #include <iterator>
 #include <type_traits>
+#include <utility>
+
+#include <boost/hana/core/make.hpp>
+#include <boost/hana/first.hpp>
+#include <boost/hana/pair.hpp>
+#include <boost/hana/second.hpp>
 
 #include "detail/algorithm.hpp"
 #include "detail/array.hpp"
@@ -13,6 +19,58 @@ namespace meta {
 namespace graph {
 
 enum class color { White = 0, Gray, Black };
+
+template <typename G>
+constexpr auto depth_first_search_new(G&& g, std::size_t s) {
+  using namespace detail;
+
+  using graph_t = std::decay_t<G>;
+
+  constexpr size_t V = graph_t::vertices_size;
+
+  array<color, V> colors{};
+  stack<std::size_t, V> res;
+
+  auto rng = make_iterator_range(g.get(s).begin(), g.get(s).end());
+  stack<boost::hana::pair<std::size_t, std::decay_t<decltype(rng)>>, V> q;
+
+  q.push(boost::hana::make_pair(s, rng));
+
+  while (!q.empty()) {
+    auto& x = q.top();
+    auto u = boost::hana::first(x);
+
+    if (colors[u] != color::White) {
+      colors[u] = color::Black;
+      q.pop();
+      continue;
+    }
+
+    res.push(u);
+    colors[u] = color::Gray;
+
+    auto& outs = boost::hana::second(x);
+    auto& b = outs.first;
+    auto e = outs.last;
+    for (; b != e; ++b) {
+      auto v = *b;
+      if (colors[v] == color::White) {
+        auto rng = g.get(v);
+        q.push(boost::hana::make_pair(
+            v, make_iterator_range(rng.begin(), rng.end())));
+        break;
+      }
+    }
+
+    if (b == e) {
+      q.pop();
+    } else {
+      outs.first = b;
+    }
+  }
+
+  return res.data;
+}
 
 template <typename G>
 constexpr auto depth_first_search(G&& g, std::size_t s) {

@@ -11,7 +11,7 @@ int main() {
   constexpr auto g = make_adj_list(make_array(1, 2), make_array(2),
                                    make_array(1, 3), make_array(0));
 
-  constexpr auto r = depth_first_search(g, 0);
+  constexpr auto r = depth_first_search_new(g, 0);
   constexpr auto expected = make_array(0, 1, 2, 3);
 
   static_assert(equal(r.begin(), r.end(), expected.begin(), expected.end()));

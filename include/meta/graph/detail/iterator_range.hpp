@@ -7,11 +7,11 @@ namespace detail {
 
 template <typename T>
 struct iterator_range {
-  T b;
-  T e;
+  T first;
+  T last;
 
-  constexpr T begin() { return b; }
-  constexpr T end() { return e; }
+  constexpr T begin() { return first; }
+  constexpr T end() { return last; }
 };
 
 template <typename T>
