@@ -34,20 +34,13 @@ constexpr auto depth_first_search_new(G&& g, std::size_t s) {
   auto rng = make_iterator_range(g.get(s).begin(), g.get(s).end());
   stack<boost::hana::pair<std::size_t, std::decay_t<decltype(rng)>>, V> q;
 
+  colors[s] = color::Gray;
   q.push(boost::hana::make_pair(s, rng));
+  res.push(s);
 
   while (!q.empty()) {
     auto& x = q.top();
     auto u = boost::hana::first(x);
-
-    if (colors[u] != color::White) {
-      colors[u] = color::Black;
-      q.pop();
-      continue;
-    }
-
-    res.push(u);
-    colors[u] = color::Gray;
 
     auto& outs = boost::hana::second(x);
     auto& b = outs.first;
@@ -56,13 +49,16 @@ constexpr auto depth_first_search_new(G&& g, std::size_t s) {
       auto v = *b;
       if (colors[v] == color::White) {
         auto rng = g.get(v);
+        colors[v] = color::Gray;
         q.push(boost::hana::make_pair(
             v, make_iterator_range(rng.begin(), rng.end())));
+        res.push(v);
         break;
       }
     }
 
     if (b == e) {
+      colors[u] = color::Black;
       q.pop();
     } else {
       outs.first = b;
