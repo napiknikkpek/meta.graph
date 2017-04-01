@@ -5,14 +5,12 @@
 
 #include "detail/array.hpp"
 #include "detail/queue.hpp"
+#include "tags.hpp"
 
-namespace meta {
-namespace graph {
+namespace meta::graph {
 
-enum class color { White = 0, Gray, Black };
-
-template <typename G>
-constexpr auto breadth_first_search(G&& g, std::size_t s) {
+template <typename G, typename Vis>
+constexpr void breadth_first_search(G&& g, std::size_t s, Vis vis) {
   using namespace detail;
 
   using graph_t = std::decay_t<G>;
@@ -21,24 +19,24 @@ constexpr auto breadth_first_search(G&& g, std::size_t s) {
   array<color, graph_t::vertices_size> colors{};
 
   colors[s] = color::Gray;
+  vis(discover, s);
   q.push(s);
 
   while (!q.empty()) {
-    auto x = q.front();
+    auto u = q.front();
     q.pop();
 
-    for (auto child : g.get(x)) {
-      auto& clr = colors[child];
+    for (auto v : g.get(u)) {
+      auto& clr = colors[v];
       if (clr == color::White) {
-        q.push(child);
         clr = color::Gray;
+        vis(discover, v);
+        q.push(v);
       }
     }
-    colors[x] = color::Black;
+    colors[u] = color::Black;
+    vis(finish, u);
   }
-
-  return q.data;
 }
-}
-}
+}  // namespace meta::graph
 #endif

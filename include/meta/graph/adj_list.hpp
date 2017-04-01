@@ -9,8 +9,7 @@
 #include "detail/array.hpp"
 #include "detail/iterator_range.hpp"
 
-namespace meta {
-namespace graph {
+namespace meta::graph {
 
 template <std::size_t V, std::size_t E>
 struct adj_list {
@@ -45,6 +44,5 @@ constexpr auto make_adj_list(detail::array<T, Is>... xs) {
 
   return adj_list<V, E>{vertices, edges};
 }
-}
-}
+}  // namespace meta::graph
 #endif
