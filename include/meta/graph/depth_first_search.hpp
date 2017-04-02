@@ -6,9 +6,8 @@
 #include <utility>
 
 #include <boost/hana/core/make.hpp>
-#include <boost/hana/first.hpp>
-#include <boost/hana/pair.hpp>
-#include <boost/hana/second.hpp>
+#include <boost/hana/tuple.hpp>
+#include <boost/hana/type.hpp>
 
 #include "detail/algorithm.hpp"
 #include "detail/array.hpp"
@@ -19,47 +18,54 @@
 namespace meta::graph {
 
 template <typename G, typename Vis, typename Colors>
-constexpr void depth_first_search_1(G&& g, std::size_t s, Vis vis,
+constexpr void depth_first_search_1(G&& g, std::size_t s, Vis&& vis,
                                     Colors& colors) {
   using namespace detail;
+  using namespace boost::hana::literals;
   using graph_t = std::decay_t<G>;
   constexpr size_t V = graph_t::vertices_size;
 
   auto rng = make_iterator_range(g.get(s).begin(), g.get(s).end());
-  stack<boost::hana::pair<std::size_t, std::decay_t<decltype(rng)>>, V> q;
+  stack<boost::hana::tuple<std::size_t, std::decay_t<decltype(rng)>>, V> q;
 
   colors[s] = color::Gray;
-  vis(discover, s);
-  q.push(boost::hana::make_pair(s, rng));
+  call(vis, root_vertex, s);
+  call(vis, discover_vertex, s);
+  q.push(boost::hana::make_tuple(s, rng));
 
   while (!q.empty()) {
-    auto x = q.top();
-    auto u = boost::hana::first(x);
+    auto u = q.top()[0_c];
+    auto outs = q.top()[1_c];
     q.pop();
 
-    auto outs = boost::hana::second(x);
     auto[b, e] = outs;
     while (b != e) {
       auto v = *b;
-      if (colors[v] == color::White) {
-        q.push(boost::hana::make_pair(u, make_iterator_range(++b, e)));
+      auto clr = colors[v];
+      if (clr == color::White) {
+        call(vis, tree_edge, u, v);
+        q.push(boost::hana::make_tuple(u, make_iterator_range(++b, e)));
         u = v;
         colors[u] = color::Gray;
-        vis(discover, u);
+        call(vis, discover_vertex, u);
         b = g.get(u).first;
         e = g.get(u).last;
       } else {
+        if (clr == color::Gray)
+          call(vis, back_edge, u, v);
+        else
+          call(vis, forward_or_cross_edge, u, v);
         ++b;
       }
     }
 
     colors[u] = color::Black;
-    vis(finish, u);
+    call(vis, finish_vertex, u);
   }
 }
 
 template <typename G, typename Vis>
-constexpr void depth_first_search(G&& g, Vis vis) {
+constexpr void depth_first_search(G&& g, Vis&& vis) {
   using namespace detail;
   using graph_t = std::decay_t<G>;
   constexpr size_t V = graph_t::vertices_size;
@@ -68,7 +74,8 @@ constexpr void depth_first_search(G&& g, Vis vis) {
 
   for (std::size_t u = 0; u < V; ++u) {
     if (colors[u] == color::White) {
-      depth_first_search_1(std::forward<G>(g), u, vis, colors);
+      depth_first_search_1(std::forward<G>(g), u, std::forward<Vis>(vis),
+                           colors);
     }
   }
 }

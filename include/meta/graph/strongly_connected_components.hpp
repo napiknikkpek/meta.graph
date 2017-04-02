@@ -5,74 +5,138 @@
 #include "depth_first_search.hpp"
 #include "detail/algorithm.hpp"
 #include "detail/array.hpp"
+#include "detail/stack.hpp"
 
 namespace meta::graph {
 
+namespace {
+
 template <typename G>
-constexpr auto transpose(G&& g) {
-  using namespace detail;
+struct visitor {
+  G const& g;
+  static std::size_t const V = std::decay_t<G>::vertices_size;
+  detail::array<std::size_t, V> comp{};
+  detail::array<std::size_t, V> time{};
+  detail::array<std::size_t, V> root{};
+  detail::array<std::size_t, V> parent{};
+  std::size_t now = 0;
+  std::size_t component = 0;
+  detail::stack<std::size_t, V> s;
 
-  using graph_t = std::decay_t<G>;
-  constexpr std::size_t V = graph_t::vertices_size;
-  constexpr std::size_t E = graph_t::edges_size;
+  constexpr visitor(G const& g) : g(g) {}
 
-  array<std::size_t, V> sizes{};
-  for (std::size_t u = 0; u < V; ++u) {
-    for (auto v : g.get(u)) {
-      ++sizes[v];
+  constexpr void operator()(root_vertex_tag, std::size_t u) {
+    this->operator()(tree_edge, u, u);
+  }
+
+  constexpr void operator()(tree_edge_tag, std::size_t u, std::size_t v) {
+    root[v] = v;
+    comp[v] = std::numeric_limits<std::size_t>::max();
+    time[v] = now++;
+    parent[v] = u;
+    s.push(v);
+  }
+
+  constexpr void operator()(back_edge_tag, std::size_t u, std::size_t v) {
+    root[u] = lowlink(root[u], root[v]);
+  }
+
+  constexpr void operator()(forward_or_cross_edge_tag, std::size_t u,
+                            std::size_t v) {
+    if (comp[v] == std::numeric_limits<std::size_t>::max()) {
+      root[u] = lowlink(root[u], root[v]);
     }
   }
 
-  array<std::size_t, V> vertices{};
-  partial_sum(sizes.begin(), prev(sizes.end()), next(vertices.begin()));
-  array<std::size_t, V> indices = vertices;
-  array<std::size_t, E> edges{};
+  constexpr void operator()(finish_vertex_tag, std::size_t u) {
+    auto p = parent[u];
+    root[p] = lowlink(root[p], root[u]);
 
-  for (std::size_t u = 0; u < V; ++u) {
-    for (auto v : g.get(u)) {
-      edges[indices[v]++] = u;
-    }
+    if (root[u] != u) return;
+
+    std::size_t v{};
+    do {
+      v = s.top();
+      s.pop();
+      comp[v] = component;
+      root[v] = u;
+    } while (u != v);
+    ++component;
   }
 
-  return adj_list<V, E>{vertices, edges};
-}
+ private:
+  constexpr std::size_t lowlink(std::size_t u, std::size_t v) {
+    return time[u] < time[v] ? u : v;
+  }
+};
+
+template <typename G>
+struct boost_visitor {
+  G const& g;
+  static std::size_t const V = std::decay_t<G>::vertices_size;
+  detail::array<std::size_t, V> comp{};
+  detail::array<std::size_t, V> time{};
+  detail::array<std::size_t, V> root{};
+  std::size_t now = 0;
+  std::size_t component = 0;
+  detail::stack<std::size_t, V> s;
+
+  constexpr boost_visitor(G const& g) : g(g) {}
+
+  constexpr void operator()(discover_vertex_tag, std::size_t u) {
+    root[u] = u;
+    comp[u] = std::numeric_limits<std::size_t>::max();
+    time[u] = now++;
+    s.push(u);
+  }
+
+  constexpr void operator()(finish_vertex_tag, std::size_t u) {
+    for (auto v : g.get(u)) {
+      if (comp[v] == std::numeric_limits<std::size_t>::max()) {
+        root[u] = lowlink(root[u], root[v]);
+      }
+    }
+
+    if (root[u] != u) return;
+
+    std::size_t v{};
+    do {
+      v = s.top();
+      s.pop();
+      comp[v] = component;
+      root[v] = u;
+    } while (u != v);
+    ++component;
+  }
+
+ private:
+  constexpr std::size_t lowlink(std::size_t u, std::size_t v) {
+    return time[u] < time[v] ? u : v;
+  }
+};
+
+}  // namespace
 
 template <typename G>
 constexpr auto strongly_connected_components(G&& g) {
-  using namespace detail;
-
   using graph_t = std::decay_t<G>;
   constexpr std::size_t V = graph_t::vertices_size;
 
-  array<std::size_t, V> fin{};
-  auto fi = std::make_reverse_iterator(fin.end());
+  visitor<graph_t> vis(static_cast<G const&>(g));
+  depth_first_search(std::forward<G>(g), vis);
 
-  depth_first_search(std::forward<G>(g),
-                     [&fi](auto tag, std::size_t u) mutable {
-                       if
-                         constexpr(is_same(tag, finish)) { *fi++ = u; }
-                     });
+  return vis.comp;
+}
 
-  auto gt = transpose(std::forward<G>(g));
+template <typename G>
+constexpr auto boost_strongly_connected_components(G&& g) {
+  using graph_t = std::decay_t<G>;
+  constexpr std::size_t V = graph_t::vertices_size;
 
-  array<std::size_t, V> res{};
+  boost_visitor<graph_t> vis(static_cast<G const&>(g));
+  depth_first_search(std::forward<G>(g), vis);
 
-  array<color, V> colors{};
-  std::size_t index = 0;
-  for (auto x : fin) {
-    if (colors[x] != color::White) continue;
-    depth_first_search_1(gt, x,
-                         [&res, index](auto tag, std::size_t u) {
-                           if
-                             constexpr(is_same(tag, discover)) {
-                               res[u] = index;
-                             }
-                         },
-                         colors);
-    ++index;
-  }
-
-  return res;
+  return vis.comp;
 }
 
 }  // namespace meta::graph

@@ -19,23 +19,23 @@ constexpr void breadth_first_search(G&& g, std::size_t s, Vis vis) {
   array<color, graph_t::vertices_size> colors{};
 
   colors[s] = color::Gray;
-  vis(discover, s);
+  call(vis, discover_vertex, s);
   q.push(s);
 
   while (!q.empty()) {
     auto u = q.front();
     q.pop();
 
-    for (auto v : g.get(u)) {
-      auto& clr = colors[v];
+    for (auto u : g.get(u)) {
+      auto& clr = colors[u];
       if (clr == color::White) {
         clr = color::Gray;
-        vis(discover, v);
-        q.push(v);
+        call(vis, discover_vertex, u);
+        q.push(u);
       }
     }
     colors[u] = color::Black;
-    vis(finish, u);
+    call(vis, finish_vertex, u);
   }
 }
 }  // namespace meta::graph

@@ -12,7 +12,7 @@ constexpr auto bfs() {
   stack<std::size_t, g.vertices.size()> res;
   breadth_first_search(g, 0, [&res](auto tag, std::size_t u) {
     if
-      constexpr(is_same(discover, tag)) { res.push(u); }
+      constexpr(is_same(discover_vertex, tag)) { res.push(u); }
   });
   return res.data;
 }

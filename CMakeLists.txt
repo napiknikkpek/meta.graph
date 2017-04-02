@@ -16,4 +16,4 @@ target_include_directories(meta.graph INTERFACE include)
 include_directories(${meta.graph_SOURCE_DIR}/include)
 
 add_subdirectory(example)
-# add_subdirectory(benchmark)
+add_subdirectory(benchmark)

@@ -18,7 +18,7 @@ constexpr auto topological_sort(G&& g) {
 
   depth_first_search(std::forward<G>(g), [&res](auto tag, std::size_t u) {
     if
-      constexpr(is_same(tag, finish)) { res.push(u); }
+      constexpr(is_same(tag, finish_vertex)) { res.push(u); }
   });
 
   return res.data;

@@ -15,7 +15,7 @@ constexpr auto dfs() {
 
   depth_first_search(g, [&res](auto tag, std::size_t u) {
     if
-      constexpr(is_same(tag, discover)) { res.push(u); }
+      constexpr(is_same(tag, discover_vertex)) { res.push(u); }
   });
   return res.data;
 }
