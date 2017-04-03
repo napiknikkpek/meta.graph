@@ -6,7 +6,7 @@ using namespace meta::graph::detail;
 
 int main(){
 
-<% 10.times do |k| %>
+<% env[:k].times do |k| %>
   <%
     v = n.to_i/10
     e = n.to_i - v
@@ -22,7 +22,7 @@ int main(){
       %> 
     };
 #if defined(METABENCH)
-  constexpr auto <%= "res#{k}" %> = strongly_connected_components(<%= "xs#{k}" %>);
+  constexpr auto <%= "res#{k}" %> = <%= env[:func] %>(<%= "xs#{k}" %>);
 #endif
 <% end %>
   return 0;
