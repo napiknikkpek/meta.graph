@@ -1,0 +1,20 @@
+#include "meta/graph/detail/sort.hpp"
+
+using namespace meta::graph::detail;
+
+int main(){
+
+<% 1.times do |k| %>
+  constexpr auto <%= "xs#{k}"%> = array<std::size_t, <%= n %>>{
+    <%=
+      gen = Random.new(9923)
+      (1..n).to_a.map{gen.rand(n)}.join(',')
+    %>
+  };
+
+#if defined(METABENCH)
+  constexpr auto <%= "res#{k}" %> = insert_sort(<%= "xs#{k}" %>);
+#endif
+<% end %>
+  return 0;
+}

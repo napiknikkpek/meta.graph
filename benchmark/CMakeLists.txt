@@ -11,3 +11,7 @@ metabench_add_dataset(scc_dataset
   ENV "{func: \"strongly_connected_components\"}")
 
 metabench_add_chart(scc_chart DATASETS scc_boost_dataset scc_dataset)
+
+metabench_add_dataset(insert_sort "sort.cpp.erb" "(0..5000).step(500)")
+
+metabench_add_chart(sort_chart DATASETS insert_sort)
