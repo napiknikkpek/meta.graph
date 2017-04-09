@@ -4,18 +4,16 @@
 #include <cstdlib>
 #include <type_traits>
 
-namespace meta {
-namespace graph {
-namespace detail {
+namespace meta::graph::detail {
 
 template <typename T, std::size_t Size>
 struct array {
+  static std::size_t const size = Size;
+
   T elems[Size];
 
   constexpr T& operator[](std::size_t n) { return elems[n]; }
   constexpr T const& operator[](std::size_t n) const { return elems[n]; }
-
-  constexpr std::size_t size() const noexcept { return Size; }
 
   constexpr T* begin() noexcept { return elems; }
   constexpr T const* begin() const noexcept { return elems; }
@@ -23,11 +21,9 @@ struct array {
   constexpr T const* end() const noexcept { return elems + Size; }
 };
 
-template <typename... T>
-constexpr auto make_array(T... t) {
-  return array<std::common_type_t<T...>, sizeof...(T)>{t...};
+template <typename D, typename... T>
+constexpr auto make_array(T&&... t) {
+  return array<D, sizeof...(T)>{std::forward<D>(t)...};
 }
-}
-}
-}
+}  // namespace meta::graph::detail
 #endif

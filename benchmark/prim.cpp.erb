@@ -1,0 +1,36 @@
+#include <initializer_list>
+
+#include "meta/graph/detail/array.hpp"
+#include "meta/graph/incidence_graph.hpp"
+#include "meta/graph/prim_min_spanning_tree.hpp"
+
+using namespace meta::graph;
+using namespace meta::graph::detail;
+
+int main(){
+<% 1.times do |k| %>
+  <% v = n/10 %>
+
+  constexpr array<edge, <%= n %>> edges{{
+    <%=
+      gen = Random.new(9923)
+      (1..n).to_a.map{'{' + gen.rand(v).to_s + ',' + gen.rand(v).to_s + '}'}.join(',')
+    %>
+  }};
+
+  constexpr auto g = make_incidence_graph<<%= v %>>(edges);
+
+  constexpr array<std::size_t, <%= n %>> weights{
+    <%=
+      gen = Random.new(2345)
+      (1..n).to_a.map{gen.rand(1000000000)}.join(',')
+    %>
+  };
+
+#if defined(METABENCH)
+  constexpr auto r = prim_min_spanning_tree(g, weights);
+#endif
+<% end %>
+
+  return 0;
+}

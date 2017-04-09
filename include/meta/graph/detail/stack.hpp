@@ -3,9 +3,7 @@
 
 #include "array.hpp"
 
-namespace meta {
-namespace graph {
-namespace detail {
+namespace meta::graph::detail {
 
 template <typename T, std::size_t Size>
 struct stack {
@@ -23,7 +21,5 @@ struct stack {
 
   constexpr void pop() { --index; }
 };
-}
-}
-}
+}  // namespace meta::graph::detail
 #endif

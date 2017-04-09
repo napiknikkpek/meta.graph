@@ -1,9 +1,7 @@
 #ifndef _4EAE5E39_5EFB_409B_A8E6_641669802316_HPP
 #define _4EAE5E39_5EFB_409B_A8E6_641669802316_HPP
 
-namespace meta {
-namespace graph {
-namespace detail {
+namespace meta::graph::detail {
 
 template <typename Iter>
 constexpr auto next(Iter i) {
@@ -58,7 +56,5 @@ constexpr void reverse(Input first, Input last) {
     swap(*first++, *last);
   }
 }
-}
-}
-}
+}  // namespace meta::graph::detail
 #endif
